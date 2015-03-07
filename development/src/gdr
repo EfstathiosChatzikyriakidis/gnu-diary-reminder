@@ -1,0 +1,870 @@
+#!/bin/sh
+
+#######
+#
+#  `gdr' - the GNU diary reminder.
+#
+#    See Texinfo manual page for more information.
+#
+#  Copyright (C) 2008  Efstathios Chatzikyriakidis (contact@efxa.org)
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+#######
+
+###
+### basic constants.
+###
+
+# program's names and version.
+PROGRAM="$(basename $0)"
+PACKAGE="GNU diary reminder"
+VERSION="1.0"
+
+# the temporary directory.
+if [ -d "~/tmp" ] ; then
+    TEMP_DIR="~/tmp"
+else
+    TEMP_DIR="/tmp"
+fi
+
+# make a temporary file for any use.
+TEMP_FILE="$(mktemp -q "${TEMP_DIR}/${PROGRAM}.$$.XXXXXX")"
+
+# get the day and month from the date.
+D="$(date +'%d')"
+M="$(date +'%m')"
+
+###
+### string messages.
+###
+
+program_author="Written by Efstathios Chatzikyriakidis."
+
+all_input_files_needed="You must specify basic input files. See '-h'."
+must_install_program="You must install the following program:"
+input_date_range_value="Input a date range (dd/mm-dd/mm):"
+ask_to_specify_date_range="Do you want to specify a range of dates"
+
+insufficient_arguments="Call with insufficient arguments."
+command_line_parse_error="Unexpected command line parsing error."
+
+file_does_not_exist="The following file does not exist:"
+file_is_not_regular="The following file is not a regular one:"
+file_has_zero_data="The following file has zero size:"
+file_is_not_readable="The following file is not readable:"
+
+error_fix_day_num="Fix the day number and try again."
+error_fix_mon_num="Fix the month number and try again."
+
+error_fix_fir_day_num="Fix the first day number and try again."
+error_fix_sec_day_num="Fix the second day number and try again."
+
+error_fix_day_part="Fix the day part and try again."
+error_fix_mon_part="Fix the month part and try again."
+
+error_fix_fir_month_num="Fix the first month number and try again."
+error_fix_sec_month_num="Fix the second month number and try again."
+
+error_fix_sec_min_num="Check if second month number > first month number."
+
+###
+### functions.
+###
+
+##
+# name: cleanup.
+#
+# description: remove temporary files.
+#
+# arguments: none.
+##
+cleanup ()
+{
+    rm -f "${TEMP_FILE}"
+    return 0
+}
+
+##
+# name: successful_exit.
+#
+# description: perform a successful exit.
+#
+# arguments: none.
+##
+successful_exit ()
+{
+    cleanup
+    exit 0
+}
+
+##
+# name: term_exit.
+#
+# description: perform exit if termination signal is trapped.
+#
+# arguments: none.
+##
+term_exit ()
+{
+    # leave two blank lines.
+    new_line ; new_line
+
+    print_message "${PROGRAM}: Terminated."
+    cleanup
+    exit 1
+}
+
+##
+# name: int_exit.
+#
+# description: perform exit if interrupt signal is trapped.
+#
+# arguments: none.
+##
+int_exit ()
+{
+    # leave two blank lines.
+    new_line ; new_line
+
+    print_message "${PROGRAM}: Aborted by user."
+    cleanup
+    exit 1
+}
+
+##
+# name: show_usage.
+#
+# description: display the usage of the program.
+#
+# arguments: none.
+##
+show_usage ()
+{
+    print_message "Usage: ${PROGRAM} [OPTIONS] -f FILE -c FILE"
+    return 0
+}
+
+##
+# name: show_help.
+#
+# description: display a help message for the program.
+#
+# arguments: none.
+##
+show_help ()
+{
+cat <<- EOD # end of data.
+$(show_usage)
+
+    -d DATE   Work with the DATE (dd/mm).
+    -f FILE   The friends list FILE.
+    -c FILE   The celebrations list FILE.
+
+    -e        Explain what is being done.
+
+    -h        Display this help and exit.
+    -v        Print version information and exit.
+    -a        Print author information and exit.
+    -l        Print the short version of GNU/GPL and exit.
+
+Report bugs to <bug-gnu-dr@gnu.org>
+EOD
+return 0
+}
+
+##
+# name: show_package.
+#
+# description: print package information.
+#
+# arguments: none.
+##
+show_package ()
+{
+    print_message "${PACKAGE} ${VERSION}"
+    return 0
+}
+
+##
+# name: show_author.
+#
+# description: print author information.
+#
+# arguments: none.
+##
+show_author ()
+{
+    print_message "${program_author}"
+    return 0
+}
+
+##
+# name: show_license.
+#
+# description: print a short version of GNU/GPL.
+#
+# arguments: none.
+##
+show_license ()
+{
+cat <<- EOD # end of data.
+Copyright (C) 2008  Efstathios Chatzikyriakidis (contact@efxa.org).
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+EOD
+return 0
+}
+
+##
+# name: print_error.
+#
+# description: print an error message to STDERR and exit.
+#
+# arguments: $@ -> message to print.
+##
+print_error ()
+{
+    [ $# -lt 1 ] && print_error "${insufficient_arguments}"
+
+    echo "${PROGRAM}: ERROR: ${@}" >&2
+
+    cleanup
+    exit 1
+}
+
+##
+# name: print_warning.
+#
+# description: print a warning message to STDERR and exit.
+#
+# arguments: $@ -> message to print.
+##
+print_warning () 
+{ 
+    [ $# -lt 1 ] && print_warning "${insufficient_arguments}"
+
+    echo "${PROGRAM}: WARNING: ${@}" >&2
+
+    cleanup
+    exit 1
+}
+
+##
+# name: print_info.
+#
+# description: print an info message to STDOUT and exit.
+#
+# arguments: $@ -> message to print.
+##
+print_info () 
+{
+    [ $# -lt 1 ] && print_info "${insufficient_arguments}"
+
+    echo "${PROGRAM}: INFO: ${@}"
+
+    cleanup
+    exit 0
+}
+
+##
+# name: print_message.
+#
+# description: print a message to STDOUT.
+#
+# arguments: $@ -> message to print.
+##
+print_message ()
+{
+    echo "${@}"
+    return 0
+}
+
+##
+# name: input_message.
+#
+# description: print an input prompt message to STDOUT.
+#
+# arguments: $@ -> message to print.
+##
+input_message () 
+{
+    echo -n "${@}"
+    return 0
+}
+
+##
+# name: new_line.
+#
+# description: print a blank line to STDOUT.
+#
+# arguments: none.
+##
+new_line () 
+{
+    echo
+    return 0
+}
+
+##
+# name: prompt_yes_no.
+#
+# description: ask a yes/no question.
+#
+# arguments: $1 -> The prompt.
+#            $2 -> The default answer (optional).
+#
+# variables: YESNO -> set to the users response
+#                     y for yes, n for no (y/n).
+##
+prompt_yes_no ()
+{
+    [ $# -lt 1 ] && print_error "${insufficient_arguments}"
+
+    DEF_ARG=""
+    YESNO=""
+
+    case "$2" in
+        [yY]|[yY][eE][sS]) 
+            DEF_ARG=y ;;
+        [nN]|[nN][oO]) 
+            DEF_ARG=n ;;
+    esac
+
+    while :
+    do
+        printf "$1 (y/n)? "
+        if [ -n "${DEF_ARG}" ] ; then
+            printf "[${DEF_ARG}] "
+        fi
+
+        read -s -n 1 YESNO
+
+        new_line
+
+        if [ -z "${YESNO}" ] ; then 
+            YESNO="${DEF_ARG}"
+        fi
+
+        case "${YESNO}" in 
+            [yY]|[yY][eE][sS]) 
+                YESNO=y ; break ;;
+            [nN]|[nN][oO]) 
+                YESNO=n ; break ;;
+            *)
+                YESNO="" ;;
+        esac
+    done
+
+    export YESNO
+    unset DEF_ARG
+    return 0
+}
+
+##
+# name: prompt_response.
+#
+# description: ask a question.
+#
+# arguments: $1 -> The prompt.
+#            $2 -> The default answer (optional).
+#
+# variables: RESPONSE -> set to the users response.
+##
+prompt_response () 
+{
+    [ $# -lt 1 ] && print_error "${insufficient_arguments}"
+
+    RESPONSE=""
+    DEF_ARG="$2"
+
+    while :
+    do
+        printf "$1 "
+
+        if [ -n "${DEF_ARG}" -a "${DEF_ARG}" != "-" ] ; then 
+            printf "[${DEF_ARG}] "
+        fi
+
+        read RESPONSE
+
+        if [ -n "${RESPONSE}" ] ; then
+            break
+        elif [ -z "${RESPONSE}" -a -n "${DEF_ARG}" ] ; then
+            RESPONSE="${DEF_ARG}"
+            if [ "${RESPONSE}" = "-" ] ; then RESPONSE="" ; fi
+            break
+        fi
+    done
+
+    export RESPONSE
+    unset DEF_ARG
+    return 0
+}
+
+##
+# name: get_uid.
+#
+# description: outputs a numeric user id.
+#
+# argument: $1 -> a user name (optional).
+##
+get_uid () 
+{
+    id -u $1
+    return 0
+}
+
+##
+# name: is_user_root.
+#
+# description: returns true (0) if the user's UID=0.
+#
+# argument: $1 -> a user name (optional).
+##
+is_user_root () 
+{
+    [ "`get_uid $1`" -eq 0 ] && return 0
+    return 1
+}
+
+##
+# name: app_exist.
+#
+# description: return true (0) if an application exists.
+#
+# argument: $1 -> application to search for.
+##
+app_exist ()
+{
+    [ $# -lt 1 ] && print_error "${insufficient_arguments}"
+
+    which "$1" > /dev/null 2>&1
+
+    [ $? -eq 0 ] && return 0
+
+    return 1
+}
+
+##
+# name: check_apps.
+#
+# description: check the existence of essential commands.
+#
+# argument: none.
+##
+check_apps ()
+{
+    # an array of commands names.
+    APPS[0]="mktemp"  ; APPS[5]="basename"
+    APPS[1]="date"    ; APPS[6]="echo"
+    APPS[2]="cat"     ; APPS[7]="id"
+    APPS[3]="sed"     ; APPS[8]="gawk"
+    APPS[4]="printf"  ; APPS[9]="rm"
+
+    # check each command for existence.
+    I=0
+    while [ $I -lt ${#APPS[*]} ]
+    do
+        if ! app_exist "${APPS[I]}" ; then
+            print_warning "${must_install_program} '${APPS[I]}'."
+        fi
+
+        I=$(($I+1)) # increase the loop counter.
+    done
+
+    unset I APPS
+    return 0
+}
+
+##
+# name: check_file.
+#
+# description: check if a file can pass to the program.
+#
+# argument: $1 -> the file to check for.
+##
+check_file ()
+{
+    [ $# -lt 1 ] && print_error "${insufficient_arguments}"
+
+    # check to see if the file exists.
+    # check to see if the file is a regular one.
+    # check to see if the file has zero size.
+    # check to see if the file is readable.
+
+    [ ! -e "$1" ] && print_warning "${file_does_not_exist} '$1'."
+    [ ! -f "$1" ] && print_warning "${file_is_not_regular} '$1'."
+    [ ! -s "$1" ] && print_warning "${file_has_zero_data} '$1'."
+    [ ! -r "$1" ] && print_warning "${file_is_not_readable} '$1'."
+
+    return 0
+}
+
+##
+# name: get_month_days.
+#
+# description: get the days of a given month.
+#
+# arguments: $1 -> the month.
+#
+# variables: DAYS -> set to the month's days number.
+##
+get_month_days ()
+{
+    # the days of a given month.
+    DAYS=0
+
+    # switch to the appropriate month.
+    case "$1" in
+       01) DAYS=31 ;; 02) DAYS=29 ;; 03) DAYS=31 ;;
+       04) DAYS=30 ;; 05) DAYS=31 ;; 06) DAYS=30 ;;
+       07) DAYS=31 ;; 08) DAYS=31 ;; 09) DAYS=30 ;;
+       10) DAYS=31 ;; 11) DAYS=30 ;; 12) DAYS=31 ;;
+        *) DAYS=-1 ;;
+    esac
+
+    export DAYS
+    return 0
+}
+
+##
+# name: check_date.
+#
+# description: check if a date is valid.
+#
+# argument: $1 -> the date to check for.
+##
+check_date ()
+{
+    # try to get the day and month from the date value.
+    D=`echo "$1" | gawk -F/ '$1~/^[0-3][0-9]$/ { print $1 }'`
+    M=`echo "$1" | gawk -F/ '$2~/^[0-1][0-9]$/ { print $2 }'`
+
+    # if no values returned print error messages.
+    [ -z "${D}" ] && print_error "${error_fix_day_part}"
+    [ -z "${M}" ] && print_error "${error_fix_mon_part}"
+
+    # check the values for month and day.
+
+    # if month is negative or greater
+    # than 12 then it's invalid month.
+    if [ ${M} -le 0 -o ${M} -gt 12 ] ; then
+       print_error "${error_fix_mon_num}"
+    fi
+
+    # find out the number of days of the month.
+    get_month_days "${M}"
+
+    # if day is negative and if day is more
+    # than that months days then is invalid.
+    if [ ${D} -le 0 -o ${D} -gt $DAYS ] ; then
+       print_error "${error_fix_day_num}"
+    fi
+
+    unset DAYS
+    return 0
+}
+
+##
+# name: check_range.
+#
+# description: check the range of dates.
+#
+# argument: $1 -> the date range to check for.
+##
+check_range ()
+{
+    # change the '-' of the range format with the '/'.
+    RANGE=`echo "$1" | tr '-' '/'`
+
+    # try to get the values from the date range.
+    dd=`echo "${RANGE}" | gawk -F/ '$1~/^[0-3][0-9]$/ { print $1 }'`
+    mm=`echo "${RANGE}" | gawk -F/ '$2~/^[0-1][0-9]$/ { print $2 }'`
+    DD=`echo "${RANGE}" | gawk -F/ '$3~/^[0-3][0-9]$/ { print $3 }'`
+    MM=`echo "${RANGE}" | gawk -F/ '$4~/^[0-1][0-9]$/ { print $4 }'`
+
+    # if no values returned print error messages.
+    [ -z "${dd}" ] && print_error "${error_fix_day_part}"
+    [ -z "${mm}" ] && print_error "${error_fix_mon_part}"
+    [ -z "${DD}" ] && print_error "${error_fix_day_part}"
+    [ -z "${MM}" ] && print_error "${error_fix_mon_part}"
+
+    # check the values for months and days.
+
+    # if months are negative, greater
+    # than 12, then they are invalid.
+    if [ ${mm} -le 0 -o ${mm} -gt 12 ] ; then
+       print_error "${error_fix_fir_month_num}"
+    elif [ ${MM} -le 0 -o ${MM} -gt 12 ] ; then
+       print_error "${error_fix_sec_month_num}"
+    fi
+
+    # get days of the first month.
+    get_month_days "${mm}"
+
+    # if day is negative and if day is more
+    # than that months days then is invalid.
+    if [ ${dd} -le 0 -o ${dd} -gt $DAYS ] ; then
+       print_error "${error_fix_fir_day_num}"
+    fi
+
+    # get days of the second month.
+    get_month_days "${MM}"
+
+    # if day is negative and if day is more
+    # than that months days then is invalid.
+    if [ ${DD} -le 0 -o ${DD} -gt $DAYS ] ; then
+       print_error "${error_fix_sec_day_num}"
+    fi
+
+    # if the second month is less than the first
+    # one, then there is a problem. print error.
+    if [ ${MM} -lt ${mm} ]; then
+        print_error "${error_fix_sec_min_num}"
+    fi
+
+    unset DAYS RANGE
+    return 0
+}
+
+##
+# name: trap_signals.
+#
+# description: trap some basic signals.
+#
+# argument: none.
+##
+trap_signals ()
+{
+    # trap TERM, HUP, and INT signals and properly exit.
+    trap term_exit TERM HUP
+    trap int_exit INT
+    return 0
+}
+
+###
+### program starts here.
+###
+
+# check for the existence of basic commands.
+check_apps
+
+# trap signals (specify handlers).
+trap_signals
+
+# init command line options flags.
+date_flag=0
+friends_flag=0
+celebs_flag=0
+explain_flag=0
+
+# if there is a variable with date value, work with
+# it. But if there is an option date then ignore it.
+[ "${GDR_DATE}" ] && check_date "${GDR_DATE}"
+
+# parse command line options.
+while getopts "d:f:c:ehval" OPTION
+do
+    case "$OPTION" in
+        d) date_flag=1
+           date_value="${OPTARG}"
+           check_date "${date_value}"
+           ;;
+
+        f) friends_flag=1
+           friends_value="${OPTARG}"
+           check_file "${friends_value}"
+           ;;
+
+        c) celebs_flag=1
+           celebs_value="${OPTARG}"
+           check_file "${celebs_value}"
+           ;;
+
+        e) explain_flag=1 ;;
+
+        h) show_help
+           exit 0
+           ;;
+
+        v) show_package
+           exit 0
+           ;;
+
+        a) show_author
+           exit 0
+           ;;
+
+        l) show_license
+           exit 0
+           ;;
+
+      [?]) show_help
+           exit 1
+           ;;
+
+        *) print_error "${command_line_parse_error}"
+    esac
+done
+
+# go to the command line arguments.
+shift $(($OPTIND - 1))
+
+# input files are both necessary.
+if [ $friends_flag = 0 -o $celebs_flag = 0 ] ; then
+    print_warning "${all_input_files_needed}"
+    exit 1
+fi
+
+# show package's name and version.
+show_package
+
+# leave a blank line.
+new_line
+
+# show the input filenames.
+print_message "Input files: "
+print_message "   * [ ${friends_value} ]"
+print_message "   * [ ${celebs_value} ]"
+
+# leave a blank line.
+new_line
+
+# print temporary verbose message.
+if [ $explain_flag = 1 ] ; then
+    print_message "Temporary file: [ ${TEMP_FILE} ]"
+
+    # leave a blank line.
+    new_line
+fi
+
+# if user doesn't give a date option ask for range input.
+if [ $date_flag = 0 -a -z "${GDR_DATE}" ] ; then
+    prompt_yes_no "${ask_to_specify_date_range}" "y"
+
+    if [ "$YESNO" = "y" ] ; then
+        # start-end day and month.
+        dd=0 ; DD=0
+        mm=0 ; MM=0
+
+        # leave a blank line.
+        new_line
+
+        # print input prompt message.
+        prompt_response "${input_date_range_value}"
+
+        # check the date range.
+        check_range "${RESPONSE}"
+
+        # construct the date range (dd/mm-dd/mm).
+        DATE_RANGE="${dd}/${mm}-${DD}/${MM}"
+
+        # store the date range to the temp file (for any use).
+        echo "${DATE_RANGE}" > "${TEMP_FILE}"
+
+        # unite months and days 'mmdd' and 'MMDD' like integer strings.
+        mmdd="${mm}${dd}"
+        MMDD="${MM}${DD}"
+
+        # leave a blank line.
+        new_line
+
+        # show birthdays.
+        print_message "Birthdays:"
+
+        # pattern checking for birthdays.
+        gawk -F: -v mmdd="${mmdd}" -v MMDD="${MMDD}" '
+
+          {
+            cur_date = $2$1
+            if ( (cur_date>=mmdd) && (cur_date<=MMDD) )
+              {
+                print "   "++x". "$4" ("$5") has birthday ("$1"-"$2"-"$3")."
+              }
+          }
+
+        ' ${friends_value}
+
+        # leave a blank line.
+        new_line
+
+        # show celebrations.
+        print_message "Celebrations:"
+
+        # pattern checking for celebrations.
+        gawk -F: -v mmdd="${mmdd}" -v MMDD="${MMDD}" '
+
+          {
+            cur_date = $1$2
+            if ( (cur_date>=mmdd) && (cur_date<=MMDD) )
+              print "   ("$2"-"$1") "$3"."
+          }
+
+        ' ${celebs_value}
+
+        # exit gracefully.
+        successful_exit
+    fi
+
+    # leave a blank line.
+    new_line
+fi
+
+# construct the date (dd/mm).
+DATE="${D}-${M}"
+
+# store the date to the temp file (for any use).
+echo "${DATE}" > "${TEMP_FILE}"
+
+# show birthdays.
+print_message "Birthdays:"
+
+# pattern checking for birthdays.
+gawk -F: -v D="${D}" -v M="${M}" '
+
+  D==$1 && M==$2 {
+    print "   "++x". "$4" ("$5") has birthday ("$3")."
+  }
+
+' ${friends_value}
+
+# leave a blank line.
+new_line
+
+# show celebrations.
+print_message "Celebrations:"
+
+# pattern checking for celebrations.
+gawk -F: -v M="${M}" -v D="${D}" '
+
+  M==$1 && D==$2 {
+    print "   "$3"."
+  }
+
+' ${celebs_value}
+
+# exit gracefully.
+successful_exit

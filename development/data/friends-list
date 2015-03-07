@@ -1,0 +1,16 @@
+######
+#
+# GNU diary reminder (gdr) - friends list.
+#
+# <day>:<month>:<year>:<fullname>:<e-mail>
+#
+#     day format: `dd'.
+#   month format: `mm'.
+#    year format: `yyyy'.
+#
+######
+
+20:03:1982:Ευάγγελος Κουτρουμπέλης:koutroumpe@yahoo.gr
+15:10:1989:Στέφανος Τζάγιας:sainhs@hotmail.com
+16:10:1985:Αθανάσιος Κασαμπαλής:kasamath@hol.gr
+17:10:1945:Κωνσταντίνος Ανθυμίδης:kwstanth@yahoo.gr

@@ -1,0 +1,292 @@
+<html lang="en">
+<head>
+<title>GNU dr manual 1.0</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="GNU dr, GNU diary reminder, GNU dr manual page">
+<meta name="generator" content="makeinfo 4.8">
+<link title="Top" rel="top" href="#Top">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This file documents the GNU dr program
+(version 1.0, October 2008).
+
+Copyright (C) 2008  Efstathios Chatzikyriakidis (contact@efxa.org)
+
+     This program is free software: you can redistribute it and/or
+     modify it under the terms of the GNU General Public License as
+     published by the Free Software Foundation, either version 3 of the
+     License, or (at your option) any later version.
+
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+     General Public License for more details.
+
+     You should have received a copy of the GNU General Public License
+     along with this program. If not, see
+     <http://www.gnu.org/licenses/>.
+   -->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+body
+ {
+  margin      : 30px;
+  font-family : sans-serif, serif;
+  font-size   : 14px;
+  font-weight : normal;
+  color       : #000000
+ }
+
+a:link, a:visited
+ {
+  font-family     : sans-serif, serif;
+  font-size       : 13px;
+  text-decoration : none;
+  color           : #4444FF
+ }
+
+a:active, a:hover
+ {
+  font-family     : sans-serif, serif;
+  font-size       : 13px;
+  text-decoration : underline;
+  color           : #0000FF
+ }
+--></style>
+</head>
+<body>
+<h1 class="settitle">GNU dr manual 1.0</h1>
+   <div class="shortcontents">
+<h2>Short Contents</h2>
+<ul>
+<li><a href="#toc_Top">GNU diary reminder manual 1.0</a></li>
+<li><a href="#toc_Instructions">How to read this manual</a></li>
+<li><a href="#toc_Overview">Overview</a></li>
+<li><a href="#toc_Invoking">Invoking</a></li>
+<li><a href="#toc_Environment-Variables">Environment Variables</a></li>
+<li><a href="#toc_Diagnostics">Diagnostics</a></li>
+<li><a href="#toc_Problems">Reporting Bugs</a></li>
+<li><a href="#toc_Concept-Index">Concept Index</a></li>
+</ul>
+</div>
+
+
+
+   <div class="contents">
+<h2>Table of Contents</h2>
+<ul>
+<li><a name="toc_Top" href="#Top">GNU diary reminder manual 1.0</a>
+<li><a name="toc_Instructions" href="#Instructions">How to read this manual</a>
+<li><a name="toc_Overview" href="#Overview">Overview</a>
+<li><a name="toc_Invoking" href="#Invoking">Invoking</a>
+<li><a name="toc_Environment-Variables" href="#Environment-Variables">Environment Variables</a>
+<li><a name="toc_Diagnostics" href="#Diagnostics">Diagnostics</a>
+<li><a name="toc_Problems" href="#Problems">Reporting Bugs</a>
+<li><a name="toc_Concept-Index" href="#Concept-Index">Concept Index</a>
+</li></ul>
+</div>
+
+<div class="node">
+<p><hr>
+<a name="Top"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#Instructions">Instructions</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#dir">(dir)</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#dir">(dir)</a>
+
+</div>
+
+<h2 class="unnumbered">GNU diary reminder manual 1.0</h2>
+
+<p>This file documents the GNU dr program
+(version 1.0, October 2008).
+
+   <p>Copyright &copy; 2008  Efstathios Chatzikyriakidis (contact@efxa.org)
+
+   <blockquote>
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+        <p>This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+        <p>You should have received a copy of the GNU General Public License
+along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;. 
+</blockquote>
+
+<ul class="menu">
+<li><a accesskey="1" href="#Instructions">Instructions</a>:             How to read this manual. 
+<li><a accesskey="2" href="#Overview">Overview</a>:                 Preliminary information. 
+<li><a accesskey="3" href="#Invoking">Invoking</a>:                 How to run the command. 
+<li><a accesskey="4" href="#Environment-Variables">Environment Variables</a>:    How to use environment variables. 
+<li><a accesskey="5" href="#Diagnostics">Diagnostics</a>:              How to use the exit values. 
+<li><a accesskey="6" href="#Problems">Problems</a>:                 Reporting bugs. 
+<li><a accesskey="7" href="#Concept-Index">Concept Index</a>:            Index of concepts. 
+</ul>
+
+<div class="node">
+<p><hr>
+<a name="Instructions"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#Overview">Overview</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Top">Top</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="unnumbered">How to read this manual</h2>
+
+<p><a name="index-How-to-read-1"></a>
+
+   To read this manual, begin at the beginning, reading from left to
+right and top to bottom, until you get to the end. Then stop. You
+may pause for a beer anywhere in the middle as well, if you wish.
+
+   <p>(Please note, however, that The King strongly advises against heavy
+use of prescription pharmaceuticals, based on his extensive personal
+and professional experience.)
+
+<div class="node">
+<p><hr>
+<a name="Overview"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#Invoking">Invoking</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Instructions">Instructions</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="unnumbered">Overview</h2>
+
+   <p class="indent">The GNU dr reminds you about birthdays and celebrations according to the
+data of the input files. By default, GNU dr works with the system's date.
+
+   <p>GNU dr is <strong>protected</strong> by the GNU General Public License.
+
+   <p>GNU dr was written by Efstathios Chatzikyriakidis.
+
+<div class="node">
+<p><hr>
+<a name="Invoking"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#Environment-Variables">Environment Variables</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Overview">Overview</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="unnumbered">Invoking</h2>
+
+<p><a name="index-Command-options-2"></a>
+The format for running the <samp><span class="command">gdr</span></samp> program is:
+
+   <p>`<samp><span class="samp">gdr [</span><var>OPTIONS</var><span class="samp">] -f </span><var>FILE</var><span class="samp"> -c </span><var>FILE</var></samp>'
+
+<p class="noindent">The <samp><span class="command">gdr</span></samp> program supports the following options:
+
+     
+<a name="index-g_t_0040option_007b_002dd_007d-3"></a>
+<dl><dt><samp><span class="option">-d DATE</span></samp><dd>Work with the DATE (dd/mm).
+
+     <p><a name="index-g_t_0040option_007b_002df_007d-4"></a><br><dt><samp><span class="option">-f FILE</span></samp><dd>The friends list FILE.
+
+     <p><a name="index-g_t_0040option_007b_002dc_007d-5"></a><br><dt><samp><span class="option">-c FILE</span></samp><dd>The celebrations list FILE.
+
+     <p><a name="index-g_t_0040option_007b_002de_007d-6"></a><br><dt><samp><span class="option">-e</span></samp><dd>Explain what is being done.
+
+     <p><a name="index-g_t_0040option_007b_002dh_007d-7"></a><br><dt><samp><span class="option">-h</span></samp><dd>Display a short help and exit.
+
+     <p><a name="index-g_t_0040option_007b_002dv_007d-8"></a><br><dt><samp><span class="option">-v</span></samp><dd>Print version information and exit.
+
+     <p><a name="index-g_t_0040option_007b_002da_007d-9"></a><br><dt><samp><span class="option">-a</span></samp><dd>Print author information and exit.
+
+     <p><a name="index-g_t_0040option_007b_002dl_007d-10"></a><br><dt><samp><span class="option">-l</span></samp><dd>Print the short version of GNU/GPL and exit. 
+</dl>
+
+<div class="node">
+<p><hr>
+<a name="Environment-Variables"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#Diagnostics">Diagnostics</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Invoking">Invoking</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="unnumbered">Environment Variables</h2>
+
+<p><a name="index-Environment-shell-variables-11"></a>The behavior of gdr is affected
+by the following environment variables.
+
+     
+<a name="index-g_t_0040option_007bGDR_005fDATE_007d-12"></a>
+<dl><dt><samp><span class="option">GDR_DATE</span></samp><dd>Specifies the date (dd/mm). 
+</dl>
+
+<div class="node">
+<p><hr>
+<a name="Diagnostics"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#Problems">Problems</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Environment-Variables">Environment Variables</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="unnumbered">Diagnostics</h2>
+
+<p><a name="index-Return-values-13"></a>Normally, exit status is 0. But, if an error occurred then exit status is 1.
+
+<div class="node">
+<p><hr>
+<a name="Problems"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#Concept-Index">Concept Index</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Diagnostics">Diagnostics</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="unnumbered">Reporting Bugs</h2>
+
+<p><a name="index-Email-reporting-bugs-14"></a>
+If you find a bug in GNU dr, please send electronic mail to:
+
+   <p>`<samp><span class="samp"><a href="mailto:bug-gnu-dr@gnu.org">bug-gnu-dr@gnu.org</a></span></samp>'
+
+<div class="node">
+<p><hr>
+<a name="Concept-Index"></a>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Problems">Problems</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="unnumbered">Concept Index</h2>
+
+<p><a name="index-Tail-recursion-15"></a>
+
+<ul class="index-cp" compact>
+<li><a href="#index-g_t_0040option_007b_002da_007d-9"><samp><span class="option">-a</span></samp></a>: <a href="#Invoking">Invoking</a></li>
+<li><a href="#index-g_t_0040option_007b_002dc_007d-5"><samp><span class="option">-c</span></samp></a>: <a href="#Invoking">Invoking</a></li>
+<li><a href="#index-g_t_0040option_007b_002dd_007d-3"><samp><span class="option">-d</span></samp></a>: <a href="#Invoking">Invoking</a></li>
+<li><a href="#index-g_t_0040option_007b_002de_007d-6"><samp><span class="option">-e</span></samp></a>: <a href="#Invoking">Invoking</a></li>
+<li><a href="#index-g_t_0040option_007b_002df_007d-4"><samp><span class="option">-f</span></samp></a>: <a href="#Invoking">Invoking</a></li>
+<li><a href="#index-g_t_0040option_007b_002dh_007d-7"><samp><span class="option">-h</span></samp></a>: <a href="#Invoking">Invoking</a></li>
+<li><a href="#index-g_t_0040option_007b_002dl_007d-10"><samp><span class="option">-l</span></samp></a>: <a href="#Invoking">Invoking</a></li>
+<li><a href="#index-g_t_0040option_007b_002dv_007d-8"><samp><span class="option">-v</span></samp></a>: <a href="#Invoking">Invoking</a></li>
+<li><a href="#index-Command-options-2">Command options</a>: <a href="#Invoking">Invoking</a></li>
+<li><a href="#index-Email-reporting-bugs-14">Email reporting bugs</a>: <a href="#Problems">Problems</a></li>
+<li><a href="#index-Environment-shell-variables-11">Environment shell variables</a>: <a href="#Environment-Variables">Environment Variables</a></li>
+<li><a href="#index-g_t_0040option_007bGDR_005fDATE_007d-12"><samp><span class="option">GDR_DATE</span></samp></a>: <a href="#Environment-Variables">Environment Variables</a></li>
+<li><a href="#index-How-to-read-1">How to read</a>: <a href="#Instructions">Instructions</a></li>
+<li><a href="#index-Return-values-13">Return values</a>: <a href="#Diagnostics">Diagnostics</a></li>
+<li><a href="#index-Tail-recursion-15">Tail recursion</a>: <a href="#Concept-Index">Concept Index</a></li>
+   </ul></body></html>
+

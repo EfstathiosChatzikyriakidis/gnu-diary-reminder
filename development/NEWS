@@ -1,0 +1,20 @@
+GNU dr -- `NEWS' starts here.
+
+News:
+
+  History of user-visible changes.
+
+  v. 1.0
+
+    * add environment variable `GDR_DATE'.
+
+    * add short option `-d'.
+    * add short option `-f'.
+    * add short option `-c'.
+    * add short option `-e'.
+    * add short option `-h'.
+    * add short option `-v'.
+    * add short option `-a'.
+    * add short option `-l'.
+
+GNU dr -- `NEWS' ends here.

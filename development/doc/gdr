@@ -1,0 +1,95 @@
+GNU diary reminder manual 1.0
+*****************************
+
+This file documents the GNU dr program (version 1.0, October 2008).
+
+   Copyright (C) 2008  Efstathios Chatzikyriakidis (contact@efxa.org)
+
+     This program is free software: you can redistribute it and/or
+     modify it under the terms of the GNU General Public License as
+     published by the Free Software Foundation, either version 3 of the
+     License, or (at your option) any later version.
+
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+     General Public License for more details.
+
+     You should have received a copy of the GNU General Public License
+     along with this program. If not, see
+     <http://www.gnu.org/licenses/>.
+
+How to read this manual
+***********************
+
+   To read this manual, begin at the beginning, reading from left to
+right and top to bottom, until you get to the end. Then stop. You may
+pause for a beer anywhere in the middle as well, if you wish.
+
+   (Please note, however, that The King strongly advises against heavy
+use of prescription pharmaceuticals, based on his extensive personal
+and professional experience.)
+
+Overview
+********
+
+   The GNU dr reminds you about birthdays and celebrations according to
+the data of the input files. By default, GNU dr works with the system's
+date.
+
+   GNU dr is *protected* by the GNU General Public License.
+
+   GNU dr was written by Efstathios Chatzikyriakidis.
+
+Invoking
+********
+
+The format for running the `gdr' program is:
+
+   `gdr [OPTIONS] -f FILE -c FILE'
+
+The `gdr' program supports the following options:
+
+`-d DATE'
+     Work with the DATE (dd/mm).
+
+`-f FILE'
+     The friends list FILE.
+
+`-c FILE'
+     The celebrations list FILE.
+
+`-e'
+     Explain what is being done.
+
+`-h'
+     Display a short help and exit.
+
+`-v'
+     Print version information and exit.
+
+`-a'
+     Print author information and exit.
+
+`-l'
+     Print the short version of GNU/GPL and exit.
+
+Environment Variables
+*********************
+
+The behavior of gdr is affected by the following environment variables.
+
+`GDR_DATE'
+     Specifies the date (dd/mm).
+
+Diagnostics
+***********
+
+Normally, exit status is 0. But, if an error occurred then exit status is 1.
+
+Reporting Bugs
+**************
+
+If you find a bug in GNU dr, please send electronic mail to:
+
+   `<bug-gnu-dr@gnu.org>'

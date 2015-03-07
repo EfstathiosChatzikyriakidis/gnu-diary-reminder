@@ -1,0 +1,388 @@
+#!/bin/sh
+
+#######
+#
+#  `install-nox'.
+#
+#  This file is the text-based installation program of GNU dr.
+#
+#  Copyright (C) 2008  Efstathios Chatzikyriakidis (contact@efxa.org)
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+#######
+
+###
+### string messages.
+###
+
+must_install_program="You must install the following program:"
+must_input_value="You must input a value to continue."
+must_be_root="You must be root to run the installation program."
+
+install_welcome="Welcome to the installation program."
+install_exit="Exit from the installation program."
+
+insufficient_arguments="Call with insufficient arguments."
+wrong_option="You have selected an unknown option."
+
+proc_done="Procedure done."
+proc_error="Procedure error."
+
+###
+### functions.
+###
+
+##
+# name: print_error.
+#
+# description: print an error message to STDERR and exit.
+#
+# arguments: $@ -> message to print.
+##
+print_error ()
+{
+    [ $# -lt 1 ] && print_error "${insufficient_arguments}"
+    echo "ERROR: ${@}" >&2
+    exit 1
+}
+
+##
+# name: print_warning.
+#
+# description: print a warning message to STDERR and exit.
+#
+# arguments: $@ -> message to print.
+##
+print_warning () 
+{ 
+    [ $# -lt 1 ] && print_warning "${insufficient_arguments}"
+    echo "WARNING: ${@}" >&2
+    exit 1
+}
+
+##
+# name: print_info.
+#
+# description: print an info message to STDOUT and exit.
+#
+# arguments: $@ -> message to print.
+##
+print_info () 
+{
+    [ $# -lt 1 ] && print_info "${insufficient_arguments}"
+    echo "INFO: ${@}"
+    exit 0
+}
+
+##
+# name: print_message.
+#
+# description: print a message to STDOUT.
+#
+# arguments: $@ -> message to print.
+##
+print_message ()
+{
+    echo "${@}"
+    return 0
+}
+
+##
+# name: new_line.
+#
+# description: print a blank line to STDOUT.
+#
+# arguments: none.
+##
+new_line () 
+{
+    echo
+    return 0
+}
+
+##
+# name: prompt_yes_no.
+#
+# description: ask a yes/no question.
+#
+# arguments: $1 -> The prompt.
+#            $2 -> The default answer (optional).
+#
+# variables: YESNO -> set to the users response
+#                     y for yes, n for no (y/n).
+##
+prompt_yes_no ()
+{
+    [ $# -lt 1 ] && print_error "${insufficient_arguments}"
+
+    DEF_ARG=""
+    YESNO=""
+
+    case "$2" in
+        [yY]|[yY][eE][sS]) 
+            DEF_ARG=y ;;
+        [nN]|[nN][oO]) 
+            DEF_ARG=n ;;
+    esac
+
+    while :
+    do
+        printf "$1 (y/n)? "
+        if [ -n "${DEF_ARG}" ] ; then
+            printf "[${DEF_ARG}] "
+        fi
+
+        read -s -n 1 YESNO
+
+        new_line
+
+        if [ -z "${YESNO}" ] ; then 
+            YESNO="${DEF_ARG}"
+        fi
+
+        case "${YESNO}" in 
+            [yY]|[yY][eE][sS]) 
+                YESNO=y ; break ;;
+            [nN]|[nN][oO]) 
+                YESNO=n ; break ;;
+            *)
+                YESNO="" ;;
+        esac
+    done
+
+    export YESNO
+    unset DEF_ARG
+    return 0
+}
+
+##
+# name: prompt_response.
+#
+# description: ask a question.
+#
+# arguments: $1 -> The prompt.
+#            $2 -> The default answer (optional).
+#
+# variables: RESPONSE -> set to the users response.
+##
+prompt_response () 
+{
+    [ $# -lt 1 ] && print_error "${insufficient_arguments}"
+
+    RESPONSE=""
+    DEF_ARG="$2"
+
+    while :
+    do
+        printf "$1 "
+
+        if [ -n "${DEF_ARG}" -a "${DEF_ARG}" != "-" ] ; then 
+            printf "[${DEF_ARG}] "
+        fi
+
+        read RESPONSE
+
+        if [ -n "${RESPONSE}" ] ; then
+            break
+        elif [ -z "${RESPONSE}" -a -n "${DEF_ARG}" ] ; then
+            RESPONSE="${DEF_ARG}"
+            if [ "${RESPONSE}" = "-" ] ; then RESPONSE="" ; fi
+            break
+        fi
+    done
+
+    export RESPONSE
+    unset DEF_ARG
+    return 0
+}
+
+##
+# name: get_uid.
+#
+# description: outputs a numeric user id.
+#
+# argument: $1 -> a user name (optional).
+##
+get_uid () 
+{
+    id -u $1
+    return 0
+}
+
+##
+# name: is_user_root.
+#
+# description: returns true (0) if the user's UID=0.
+#
+# argument: $1 -> a user name (optional).
+##
+is_user_root ()
+{
+    [ "`get_uid $1`" -eq 0 ] && return 0
+    return 1
+}
+
+##
+# name: app_exist.
+#
+# description: return true (0) if an application exists.
+#
+# argument: $1 -> application to search for.
+##
+app_exist ()
+{
+    [ $# -lt 1 ] && print_error "${insufficient_arguments}"
+
+    which "$1" > /dev/null 2>&1
+
+    [ $? -eq 0 ] && return 0
+
+    return 1
+}
+
+##
+# name: check_apps.
+#
+# description: check the existence of essential commands.
+#
+# argument: none.
+##
+check_apps ()
+{
+    # an array of commands names.
+    APPS[0]="echo"
+    APPS[1]="make"
+    APPS[2]="gcc"
+    APPS[3]="id"
+    APPS[4]="printf"
+
+    # check each command for existence.
+    I=0
+    while [ $I -lt ${#APPS[*]} ]
+    do
+        if ! app_exist "${APPS[I]}" ; then
+            print_warning "${must_install_program} '${APPS[I]}'."
+        fi
+
+        I=$(($I+1)) # increase the loop counter.
+    done
+
+    unset I APPS
+    return 0
+}
+
+###
+### program starts here.
+###
+
+# print welcome message.
+print_message "${install_welcome}"
+
+# check to see if the user isn't superuser.
+if ! is_user_root; then
+    new_line ; print_message "${must_be_root}"
+    new_line ; print_info "${install_exit}"
+fi
+
+# the user has superuser privileges.
+
+# leave a blank line.
+new_line
+
+# check for the existence of basic commands.
+check_apps
+
+# print the menu to the user.
+echo -n "Select which procedure you want to do.
+
+ 1) Install the program.
+ 2) Uninstall the program.
+     
+Answer here: ";
+
+# read input from user.
+read -s -n 1 OPTION
+
+# leave a blank line.
+new_line
+
+# set `OPTION' values depending on user input.
+case $OPTION in
+    1) OPTION="install"   ;;
+    2) OPTION="uninstall" ;;
+
+    *) new_line
+       print_error "${wrong_option}"
+       ;;
+esac
+
+# are you sure you want to uninstall the program?
+if [ "$OPTION" = "uninstall" ]; then
+    new_line; prompt_yes_no "Are you sure you want to continue" "y"
+    if [ "$YESNO" = "n" ]; then
+        new_line; print_info "${install_exit}"
+    fi
+fi
+
+if [ "$OPTION" = "uninstall" -o "$OPTION" = "install" ]; then
+    # leave a blank line.
+    new_line
+
+    # just print basic info in order to inform the user.
+    print_message "The program needs some location paths directories."
+
+    # leave a blank line.
+    new_line
+
+    # suggest some basic paths (we need it for 
+    # installation/unistallation). if there is
+    # no satisfied option the user will input
+    # the value manually.
+
+    # ask for manual page input.
+    prompt_response "Manual pages directory path?" "/usr/share/man/man1"
+    if [ -z "${RESPONSE}" ]; then
+        new_line; print_warning "${must_input_value}"
+    fi
+    m="${RESPONSE}"
+
+    # ask for info page input.
+    prompt_response "Info pages directory path?" "/usr/share/info"
+    if [ -z "${RESPONSE}" ]; then
+        new_line; print_warning "${must_input_value}"
+    fi
+    i="${RESPONSE}"
+
+    # ask for binary input.
+    prompt_response "Binary programs directory path?" "/usr/bin"
+    if [ -z "${RESPONSE}" ]; then
+        new_line; print_warning "${must_input_value}"
+    fi
+    b="${RESPONSE}"
+fi
+
+# do the appropriate procedure.
+if [ "$OPTION" = "install" ]; then
+    make install bin_path="${b}" info_path="${i}" man_path="${m}" > /dev/null
+elif [ "$OPTION" = "uninstall" ]; then
+    make uninstall bin_path="${b}" info_path="${i}" man_path="${m}" > /dev/null
+fi
+
+# print the procedure message status.
+if [ $? -eq 0 ] ; then
+    new_line; print_info "${proc_done}"
+else
+    new_line; print_error "${proc_error}"
+fi
